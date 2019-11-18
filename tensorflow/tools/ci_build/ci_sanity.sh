@@ -112,7 +112,8 @@ do_pylint() {
 "^tensorflow/python/keras/layers/recurrent\.py.*\[E0203.*access-member-before-definition "\
 "^tensorflow/python/kernel_tests/constant_op_eager_test.py.*\[E0303.*invalid-length-returned "\
 "^tensorflow/python/keras/utils/data_utils.py.*\[E1102.*not-callable "\
-"^tensorflow/python/autograph/.*_py3_test\.py.*\[E0001.*syntax-error "
+"^tensorflow/python/autograph/.*_py3_test\.py.*\[E0001.*syntax-error "\
+"^tensorflow/python/keras/preprocessing/image\.py.*\[E0240.*Inconsistent method resolution "
 
   echo "ERROR_WHITELIST=\"${ERROR_WHITELIST}\""
 
@@ -368,7 +369,7 @@ do_external_licenses_check(){
 
   # Whitelist
   echo ${EXTRA_LICENSE_FILE}
-  grep -e "//third_party/mkl_dnn" -e "@bazel_tools//src" -e "@bazel_tools//tools/" -e "@org_tensorflow//tensorflow" -e "@com_google_absl//" -e "//external" -e "@local" -e "@com_github_googlecloudplatform_google_cloud_cpp//" -e "@embedded_jdk//" -v ${EXTRA_LICENSES_FILE} > temp.txt
+  grep -e "//third_party/mkl_dnn" -e "@bazel_tools//src" -e "@bazel_tools//tools/" -e "@org_tensorflow//tensorflow" -e "@com_google_absl//" -e "//external" -e "@local" -e "@com_github_googlecloudplatform_google_cloud_cpp//" -e "@embedded_jdk//" -e "^//$" -v ${EXTRA_LICENSES_FILE} > temp.txt
   mv temp.txt ${EXTRA_LICENSES_FILE}
 
 
@@ -577,7 +578,8 @@ _do_pip_no_cuda_deps_check() {
         "@local_config_cuda//cuda:cudnn"
         "@local_config_cuda//cuda:curand"
         "@local_config_cuda//cuda:cusolver"
-        "@local_config_cuda//cuda:cusparse")
+        "@local_config_cuda//cuda:cusparse"
+        "@local_config_tensorrt//:tensorrt")
   for cuda_dep in "${DISALLOWED_CUDA_DEPS[@]}"
   do
    _check_no_deps "//tensorflow/tools/pip_package:build_pip_package" "${cuda_dep}" "${EXTRA_FLAG}"
@@ -601,6 +603,7 @@ do_configure_test() {
   for WITH_CUDA in 1 0
   do
     export TF_NEED_CUDA=${WITH_CUDA}
+    export CUDNN_INSTALL_PATH="/usr/local/cudnn"
     export PYTHON_BIN_PATH=$(which python)
     yes "" | ./configure
 
